@@ -6,6 +6,10 @@ _init_command = [0xAE, 0x20, 0x10, 0xB0,
                  0x22, 0xDA, 0x12, 0xDB,
                  0x20, 0x8D, 0x14, 0xAF]
 
+_on_command = [0x8D, 0x14, 0xAF]
+
+_off_command = [0x8D, 0x10, 0xAE]
+
 Font6x8 = [[0x00, 0x00, 0x00, 0x00, 0x00, 0x00],
            [0x00, 0x00, 0x00, 0x2f, 0x00, 0x00],
            [0x00, 0x00, 0x07, 0x00, 0x07, 0x00],
@@ -107,40 +111,35 @@ class SSD1306:
     def __init__(self, i2c, ADDRESS = 0x78):
         self.i2c = i2c
         self.ADDR = ADDRESS
-
-    def _write_register(self, register, data):
-        self.i2c.writeto_mem(self.ADDR, register, data, mem_size = 8)
-
+        
     def _set_pos(self, x, y):
         if x<128 and y<8:
-            self._write_register(0x00, 0xb0+y)
-            self._write_register(0x00, ((x&0xf0)>>4)|0x10)
-            self._write_register(0x00, x&0x0f)
+            self.i2c.writeto_mem(self.ADDR, 0x00, 0xb0+y, mem_size = 8)
+            self.i2c.writeto_mem(self.ADDR, 0x00, ((x&0xf0)>>4)|0x10, mem_size = 8)
+            self.i2c.writeto_mem(self.ADDR, 0x00, x&0x0f, mem_size = 8)
 
     def Init(self):
             for i in _init_command:
-                self._write_register(0x00, i)
+                self.i2c.writeto_mem(self.ADDR, 0x00, i, mem_size = 8)
 
     def On(self):
-      _on_command = [0x8D, 0x14, 0xAF]
-      for i in _on_command:
-            self._write_register(0x00, i)
+        for i in _on_command:
+            self.i2c.writeto_mem(self.ADDR, 0x00, i, mem_size = 8)
 
     def Off(self):
-        _off_command = [0x8D, 0x10, 0xAE]
         for i in _off_command:
-            self._write_register(0x00, i)
+            self.i2c.writeto_mem(self.ADDR, 0x00, i, mem_size = 8)
 
     def Fill(self, data):
         for i in range(0,8):
-            self._write_register(0x00, 0xb0+i)
-            self._write_register(0x00, 0x10)
-            self._write_register(0x00, 0x01)
+            self.i2c.writeto_mem(self.ADDR, 0x00, 0xb0+i, mem_size = 8)
+            self.i2c.writeto_mem(self.ADDR, 0x00, 0x10, mem_size = 8)
+            self.i2c.writeto_mem(self.ADDR, 0x00, 0x01, mem_size = 8)
             for j in range(0,128):
-                self._write_register(0x40, data)
+                self.i2c.writeto_mem(self.ADDR, 0x40, data, mem_size = 8)
     def Text (self, x, y, STR):
         for i in range(len(STR)):
             Num = ord(STR[i])
             self._set_pos(x, y)
             for j in range(6):
-                self._write_register(0x40, Font6x8[c][j])
+                self.i2c.writeto_mem(self.ADDR, 0x40, Font6x8[c][j], mem_size = 8)
